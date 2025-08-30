@@ -1,0 +1,57 @@
+/* Enhanced content script styles - this file is included for legacy compatibility */
+/* Main styles are now injected via JavaScript for better performance and dynamic theming */
+
+/* Base overlay styles for fallback */
+.youtube-auto-reply-overlay {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  z-index: 9999 !important;
+  background: rgba(0, 0, 0, 0.95) !important;
+  color: #FAFAFA !important;
+  padding: 16px 20px !important;
+  border-radius: 12px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+  max-width: 320px !important;
+  min-width: 280px !important;
+  word-wrap: break-word !important;
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+/* Responsive fallback */
+@media (max-width: 768px) {
+  .youtube-auto-reply-overlay {
+    right: 12px !important;
+    left: 12px !important;
+    max-width: none !important;
+    min-width: auto !important;
+    top: 12px !important;
+    font-size: 13px !important;
+    padding: 14px 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .youtube-auto-reply-overlay {
+    right: 8px !important;
+    left: 8px !important;
+    top: 8px !important;
+    font-size: 12px !important;
+    padding: 12px 14px !important;
+  }
+}
+
+/* Dark mode detection fallback */
+@media (prefers-color-scheme: dark) {
+  .youtube-auto-reply-overlay {
+    background: rgba(17, 17, 17, 0.95) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+  }
+}
