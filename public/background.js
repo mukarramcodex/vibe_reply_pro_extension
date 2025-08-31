@@ -1,13 +1,13 @@
 // Enhanced service worker for YouTube Auto Reply Extension
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("YouTube Auto Reply Pro Extension installed.");
+  console.log("VibeReply.pro Extension installed.");
   
   // Initialize default settings
   chrome.storage.sync.get(['customPrompt'], (data) => {
     if (!data.customPrompt) {
       chrome.storage.sync.set({
         customPrompt: "Reply politely and engagingly to this YouTube comment while being helpful and constructive.",
-        apiEndpoint: 'https://your-saas-domain.com/api/reply',
+        apiEndpoint: 'https://vibereply.pro/api/reply',
         autoSubmit: true,
         skipShortComments: true,
         showNotifications: true,
@@ -22,7 +22,7 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'popup') {
     port.onDisconnect.addListener(() => {
-      console.log('YouTube Auto Reply: Popup disconnected');
+      console.log('VibeReply.pro: Popup disconnected');
     });
   }
 });

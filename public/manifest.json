@@ -1,19 +1,29 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Auto Reply Pro",
-  "description": "Intelligently reply to YouTube comments using AI with customizable prompts and advanced features.",
+  "name": "VibeReply.pro - Lite",
+  "description": "Intelligently reply to YouTube comments using AI with customizable prompts and advanced features. AI auto-reply assistant for email and social inboxes.",
   "version": "2.0.0",
   "permissions": ["activeTab", "scripting", "storage", "tabs"],
-  "host_permissions": ["https://www.youtube.com/*"],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://mail.google.com/*",
+    "https://*.supabase.co/*",
+    "https://api.vibereply.pro/*"
+    ],
   "content_scripts": [
     {
-      "matches": ["https://www.youtube.com/*"],
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://mail.google.com/*"
+      ],
       "js": ["content.js"],
-      "css": ["content.css"]
+      "css": ["content.css"],
+      "run_at": "document_idle"
     }
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "action": {
     "default_popup": "popup.html",
@@ -31,5 +41,14 @@
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
-  }
+  },
+  "externally_connectable": {
+    "matches": ["https://vibereply.pro/*"]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
