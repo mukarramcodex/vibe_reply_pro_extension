@@ -45,7 +45,7 @@ interface StatsData {
 }
 
 const defaultSettings: SettingsData = {
-  apiEndpoint: 'https://your-saas-domain.com/api/reply',
+  apiEndpoint: 'https://vibereply.pro/api/reply',
   apiKey: '',
   requestTimeout: 15,
   autoSubmit: true,
@@ -350,7 +350,7 @@ export const OptionsApp: React.FC = () => {
                 <Youtube className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-theme-text-primary">YouTube Auto Reply Pro</h1>
+                <h1 className="text-xl font-bold text-theme-text-primary">VibeReply.pro Extension</h1>
                 <p className="text-sm text-theme-text-secondary">Advanced Settings & Configuration</p>
               </div>
             </div>

@@ -3,7 +3,7 @@ class YouTubeAutoReply {
   constructor() {
     this.isProcessing = false;
     this.processedComments = new Set();
-    this.apiEndpoint = "https://your-saas-domain.com/api/reply";
+    this.apiEndpoint = "https://vibereply.pro/api/reply";
     this.maxRetries = 3;
     this.settings = {};
     this.init();
@@ -14,7 +14,7 @@ class YouTubeAutoReply {
     this.bindMessageListener();
     this.observePageChanges();
     this.injectStyles();
-    console.log("YouTube Auto Reply Pro: Content script initialized");
+    console.log("VibeReply Pro: Content script initialized");
   }
 
   // Load settings from storage

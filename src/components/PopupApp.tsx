@@ -242,7 +242,7 @@ export const PopupApp: React.FC = () => {
               <Youtube className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold">VibeReply.pro Reply</h1>
+              <h1 className="text-xl font-bold">VibeReply.pro Extension</h1>
               <p className="text-red-100 text-sm">AI-Powered Comment Responses</p>
             </div>
           </div>
