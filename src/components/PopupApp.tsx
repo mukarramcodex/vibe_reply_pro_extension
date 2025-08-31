@@ -45,17 +45,35 @@ export const PopupApp: React.FC = () => {
     })();
   }, []);
 
-  const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOtp({
-      email: prompt("Enter your email") || "",
+  // Google Login
+  const handleGoogleLogin = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: chrome.identity.getRedirectURL(),
+      },
     });
-    if (error) {
-      showStatus("error", "Login failed");
-      console.error(error);
-    } else {
-      showStatus("success", "Check your email for login link");
-    }
+    if (error) console.error("Google login error", error);
   };
+
+  const handleDashboardLogin = () => {
+    const extensionId = chrome.runtime.id;
+    chrome.tabs.create({
+      url: `https://vibereply.pro/connect-extension?extensionId=${extensionId}`,
+    });
+  };
+
+  // const handleLogin = async () => {
+  //   const { error } = await supabase.auth.signInWithOtp({
+  //     email: prompt("Enter your email") || "",
+  //   });
+  //   if (error) {
+  //     showStatus("error", "Login failed");
+  //     console.error(error);
+  //   } else {
+  //     showStatus("success", "Check your email for login link");
+  //   }
+  // };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -250,8 +268,11 @@ export const PopupApp: React.FC = () => {
       </div>
       {!user ? (
         <div className="px-6 py-6">
-          <Button onClick={handleLogin} className="w-full bg-blue-500 text-white">
-            Login with Email
+          <Button onClick={handleGoogleLogin} className="w-full bg-blue-500 text-white">
+            Continue with Google
+          </Button>
+          <Button onClick={handleDashboardLogin} className="w-full bg-blue-500 text-white">
+            Login via Dashboard
           </Button>
         </div>
       ) : (
@@ -397,6 +418,7 @@ export const PopupApp: React.FC = () => {
               <p>Ctrl+S: Save Prompt • Ctrl+1: Reply One • Ctrl+A: Reply All</p>
             </div>
             {/* Logout button */}
+            <p className="text-sm">Hi, {user.email}</p>
             <Button onClick={handleLogout} className="w-full bg-red-500 text-white">
               Logout
             </Button>
