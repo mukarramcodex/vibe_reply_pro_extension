@@ -6,8 +6,10 @@ export const chromeStorage = {
         reject(new Error('Chrome storage not available'));
         return;
       }
+
+      const safeKeys = keys ?? null;
       
-      window.chrome.storage.sync.get(keys, (result) => {
+      window.chrome.storage.sync.get(safeKeys, (result) => {
         if (window.chrome.runtime.lastError) {
           reject(new Error(window.chrome.runtime.lastError.message));
         } else {
@@ -90,3 +92,16 @@ export const tabMessaging = {
     });
   }
 };
+
+export async function setAuthTokens(tokens: any) {
+  await chrome.storage.sync.set({ auth: tokens });
+}
+
+export async function getAuthTokens() {
+  const data = await chrome.storage.sync.get("auth");
+  return data.auth || null;
+}
+
+export async function clearAuthTokens() {
+  await chrome.storage.sync.remove("auth");
+}
