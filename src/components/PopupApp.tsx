@@ -45,16 +45,16 @@ export const PopupApp: React.FC = () => {
     })();
   }, []);
 
-  // Google Login
-  const handleGoogleLogin = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: chrome.identity.getRedirectURL(),
-      },
-    });
-    if (error) console.error("Google login error", error);
-  };
+  // // Google Login
+  // const handleGoogleLogin = async () => {
+  //   const { data, error } = await supabase.auth.signInWithOAuth({
+  //     provider: "google",
+  //     options: {
+  //       redirectTo: chrome.identity.getRedirectURL(),
+  //     },
+  //   });
+  //   if (error) console.error("Google login error", error);
+  // };
 
   const handleDashboardLogin = () => {
     const extensionId = chrome.runtime.id;
@@ -268,9 +268,9 @@ export const PopupApp: React.FC = () => {
       </div>
       {!user ? (
         <div className="px-6 py-6">
-          <Button onClick={handleGoogleLogin} className="w-full bg-blue-500 text-white">
+          {/* <Button onClick={handleGoogleLogin} className="w-full bg-blue-500 text-white">
             Continue with Google
-          </Button>
+          </Button> */}
           <Button onClick={handleDashboardLogin} className="w-full bg-blue-500 text-white">
             Login via Dashboard
           </Button>
