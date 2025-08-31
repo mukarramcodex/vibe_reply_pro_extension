@@ -161,10 +161,13 @@ export const PopupApp: React.FC = () => {
       }
       
     } catch (error) {
-      showStatus('error', `Error: ${error.message}`);
-      console.error('Reply action error:', error);
-    } finally {
-      setIsProcessing(false);
+      if (error instanceof Error) {
+        showStatus('error', `Error: ${error.message}`);
+        console.error('Reply action error:', error);
+      } else {
+        showStatus('error', 'An unknown error occurred');
+        console.error('Reply action unknown error:', error);
+      }
     }
   };
 
