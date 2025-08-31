@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Youtube, 
-  MessageCircle, 
-  MessagesSquare, 
-  Settings, 
-  BarChart3, 
+import {
+  Youtube,
+  MessageCircle,
+  MessagesSquare,
+  Settings,
+  BarChart3,
   Save,
   Wand2
 } from 'lucide-react';
 import { Button } from './Button';
 import { StatusIndicator } from './StatusIndicator';
 import { ThemeToggle } from './ThemeToggle';
-import { chromeStorage, tabMessaging } from '../utils/storage';
+import { chromeStorage, clearAuthTokens, tabMessaging } from '../utils/storage';
 import { themeManager } from '../utils/theme';
+import { supabase } from '../utils/supabaseClient';
 
 interface Stats {
   repliedCount: number;
@@ -31,21 +32,45 @@ export const PopupApp: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [statusMessages, setStatusMessages] = useState<StatusMessage[]>([]);
   const [charCount, setCharCount] = useState(0);
+  const [user, setUser] = useState<any>(null);
 
   // Initialize theme and load data
   useEffect(() => {
     themeManager.initTheme();
     loadSavedData();
+
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) setUser(data.user);
+    })();
   }, []);
+
+  const handleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email: prompt("Enter your email") || "",
+    });
+    if (error) {
+      showStatus("error", "Login failed");
+      console.error(error);
+    } else {
+      showStatus("success", "Check your email for login link");
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    await clearAuthTokens();
+    setUser(null);
+  };
 
   // Load saved data from Chrome storage
   const loadSavedData = async () => {
     try {
       const data = await chromeStorage.get(['customPrompt', 'sessionStats']);
-      
+
       setCustomPrompt(data.customPrompt || '');
       setCharCount((data.customPrompt || '').length);
-      
+
       if (data.sessionStats) {
         setStats({
           repliedCount: data.sessionStats.repliedCount || 0,
@@ -62,16 +87,16 @@ export const PopupApp: React.FC = () => {
   const showStatus = (type: StatusMessage['type'], message: string) => {
     const id = `status-${Date.now()}-${Math.random()}`;
     const newStatus: StatusMessage = { type, message, id };
-    
+
     setStatusMessages(prev => [...prev, newStatus]);
-    
+
     // Auto-remove non-loading messages
     if (type !== 'loading') {
       setTimeout(() => {
         setStatusMessages(prev => prev.filter(s => s.id !== id));
       }, 5000);
     }
-    
+
     return id;
   };
 
@@ -112,36 +137,36 @@ export const PopupApp: React.FC = () => {
 
     try {
       setIsProcessing(true);
-      
+
       // Check if we're on YouTube
       const tab = await tabMessaging.getActiveTab();
-      
+
       if (!tab.url?.includes('youtube.com')) {
         showStatus('warning', 'Please navigate to a YouTube video page');
         return;
       }
 
-      const loadingId = showStatus('loading', 
-        action === 'replyOne' 
-          ? 'Replying to comment...' 
+      const loadingId = showStatus('loading',
+        action === 'replyOne'
+          ? 'Replying to comment...'
           : 'Processing all comments...'
       );
 
       // Send message to content script
       const response = await tabMessaging.sendMessage(tab.id, { action });
-      
+
       // Remove loading status
       removeStatus(loadingId);
-      
+
       if (response?.success) {
         const newRepliedCount = stats.repliedCount + (response.repliedCount || 0);
         const newStats = {
           repliedCount: newRepliedCount,
           commentsFound: response.totalComments || 0
         };
-        
+
         setStats(newStats);
-        
+
         // Save session stats
         await chromeStorage.set({
           sessionStats: {
@@ -149,17 +174,17 @@ export const PopupApp: React.FC = () => {
             lastUpdated: new Date().toISOString()
           }
         });
-        
-        const message = action === 'replyOne' 
-          ? 'Successfully replied to comment!' 
+
+        const message = action === 'replyOne'
+          ? 'Successfully replied to comment!'
           : `Successfully processed ${response.repliedCount} comments!`;
-        
+
         showStatus('success', message);
-        
+
       } else {
         throw new Error(response?.error || 'Unknown error occurred');
       }
-      
+
     } catch (error) {
       if (error instanceof Error) {
         showStatus('error', `Error: ${error.message}`);
@@ -210,162 +235,174 @@ export const PopupApp: React.FC = () => {
         <div className="absolute top-4 right-4">
           <ThemeToggle />
         </div>
-        
+
         <div className="px-6 py-8">
           <div className="flex items-center space-x-4">
             <div className="bg-white bg-opacity-20 p-3 rounded-xl backdrop-blur-sm">
               <Youtube className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold">YouTube Auto Reply</h1>
+              <h1 className="text-xl font-bold">VibeReply.pro Reply</h1>
               <p className="text-red-100 text-sm">AI-Powered Comment Responses</p>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Status Messages */}
-      {statusMessages.length > 0 && (
-        <div className="px-6 py-4 space-y-3">
-          {statusMessages.map((status) => (
-            <StatusIndicator
-              key={status.id}
-              type={status.type}
-              message={status.message}
-              onClose={status.type !== 'loading' ? () => removeStatus(status.id) : undefined}
-            />
-          ))}
+      {!user ? (
+        <div className="px-6 py-6">
+          <Button onClick={handleLogin} className="w-full bg-blue-500 text-white">
+            Login with Email
+          </Button>
         </div>
-      )}
+      ) : (
+        <>
+          {/* Status Messages */}
+          {statusMessages.length > 0 && (
+            <div className="px-6 py-4 space-y-3">
+              {statusMessages.map((status) => (
+                <StatusIndicator
+                  key={status.id}
+                  type={status.type}
+                  message={status.message}
+                  onClose={status.type !== 'loading' ? () => removeStatus(status.id) : undefined}
+                />
+              ))}
+            </div>
+          )}
+          {/* Main Content */}
+          <div className="px-6 py-6 space-y-6">
+            {/* Custom Prompt Section */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Wand2 className="w-4 h-4 text-theme-accent" />
+                <label className="text-sm font-semibold text-theme-text-primary">
+                  Custom AI Prompt
+                </label>
+              </div>
 
-      {/* Main Content */}
-      <div className="px-6 py-6 space-y-6">
-        {/* Custom Prompt Section */}
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Wand2 className="w-4 h-4 text-theme-accent" />
-            <label className="text-sm font-semibold text-theme-text-primary">
-              Custom AI Prompt
-            </label>
-          </div>
-          
-          <div className="relative">
-            <textarea
-              value={customPrompt}
-              onChange={handlePromptChange}
-              className="
+              <div className="relative">
+                <textarea
+                  value={customPrompt}
+                  onChange={handlePromptChange}
+                  className="
                 w-full p-4 rounded-xl border border-theme-border bg-theme-bg-secondary
                 text-theme-text-primary text-sm resize-none
                 focus:outline-none focus:ring-2 focus:ring-theme-accent focus:ring-opacity-20
                 focus:border-theme-accent transition-all duration-200
                 placeholder-theme-text-secondary
               "
-              placeholder="Enter how you want the AI to respond to comments... (e.g., 'Reply professionally and engagingly to this YouTube comment')"
-              rows={4}
-              maxLength={500}
-            />
-            <div className="absolute bottom-3 right-3 text-xs text-theme-text-secondary">
-              <span className={charCount > 450 ? 'text-theme-accent' : ''}>
-                {charCount}
-              </span>
-              /500
+                  placeholder="Enter how you want the AI to respond to comments... (e.g., 'Reply professionally and engagingly to this YouTube comment')"
+                  rows={4}
+                  maxLength={500}
+                />
+                <div className="absolute bottom-3 right-3 text-xs text-theme-text-secondary">
+                  <span className={charCount > 450 ? 'text-theme-accent' : ''}>
+                    {charCount}
+                  </span>
+                  /500
+                </div>
+              </div>
+
+              <Button
+                onClick={savePrompt}
+                disabled={!customPrompt.trim()}
+                icon={<Save className="w-4 h-4" />}
+                className="w-full"
+              >
+                Save Prompt
+              </Button>
             </div>
-          </div>
-          
-          <Button
-            onClick={savePrompt}
-            disabled={!customPrompt.trim()}
-            icon={<Save className="w-4 h-4" />}
-            className="w-full"
-          >
-            Save Prompt
-          </Button>
-        </div>
 
-        {/* Divider */}
-        <div className="border-t border-theme-border"></div>
+            {/* Divider */}
+            <div className="border-t border-theme-border"></div>
 
-        {/* Action Buttons */}
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2 mb-4">
-            <MessageCircle className="w-4 h-4 text-theme-accent" />
-            <h3 className="text-sm font-semibold text-theme-text-primary">
-              AI Reply Actions
-            </h3>
-          </div>
-          
-          <Button
-            onClick={() => handleReplyAction('replyOne')}
-            disabled={isProcessing}
-            loading={isProcessing}
-            variant="secondary"
-            icon={<MessageCircle className="w-4 h-4" />}
-            className="w-full"
-          >
-            Reply to First Comment
-          </Button>
-          
-          <Button
-            onClick={() => handleReplyAction('replyAll')}
-            disabled={isProcessing}
-            loading={isProcessing}
-            icon={<MessagesSquare className="w-4 h-4" />}
-            className="w-full"
-          >
-            Reply to All Comments
-          </Button>
-        </div>
-
-        {/* Statistics Section */}
-        <div className="bg-theme-bg-secondary rounded-xl border border-theme-border p-5">
-          <div className="flex items-center space-x-2 mb-4">
-            <BarChart3 className="w-4 h-4 text-theme-accent" />
-            <h4 className="text-sm font-semibold text-theme-text-primary">
-              Session Stats
-            </h4>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-3 bg-theme-bg-primary rounded-lg">
-              <div className="text-2xl font-bold text-theme-accent">
-                {stats.repliedCount}
+            {/* Action Buttons */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2 mb-4">
+                <MessageCircle className="w-4 h-4 text-theme-accent" />
+                <h3 className="text-sm font-semibold text-theme-text-primary">
+                  AI Reply Actions
+                </h3>
               </div>
-              <div className="text-xs text-theme-text-secondary">
-                Replies Sent
+
+              <Button
+                onClick={() => handleReplyAction('replyOne')}
+                disabled={isProcessing}
+                loading={isProcessing}
+                variant="secondary"
+                icon={<MessageCircle className="w-4 h-4" />}
+                className="w-full"
+              >
+                Reply to First Comment
+              </Button>
+
+              <Button
+                onClick={() => handleReplyAction('replyAll')}
+                disabled={isProcessing}
+                loading={isProcessing}
+                icon={<MessagesSquare className="w-4 h-4" />}
+                className="w-full"
+              >
+                Reply to All Comments
+              </Button>
+            </div>
+
+            {/* Statistics Section */}
+            <div className="bg-theme-bg-secondary rounded-xl border border-theme-border p-5">
+              <div className="flex items-center space-x-2 mb-4">
+                <BarChart3 className="w-4 h-4 text-theme-accent" />
+                <h4 className="text-sm font-semibold text-theme-text-primary">
+                  Session Stats
+                </h4>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-theme-bg-primary rounded-lg">
+                  <div className="text-2xl font-bold text-theme-accent">
+                    {stats.repliedCount}
+                  </div>
+                  <div className="text-xs text-theme-text-secondary">
+                    Replies Sent
+                  </div>
+                </div>
+                <div className="text-center p-3 bg-theme-bg-primary rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {stats.commentsFound}
+                  </div>
+                  <div className="text-xs text-theme-text-secondary">
+                    Comments Found
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="text-center p-3 bg-theme-bg-primary rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">
-                {stats.commentsFound}
-              </div>
-              <div className="text-xs text-theme-text-secondary">
-                Comments Found
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Settings Link */}
-        <div className="pt-2">
-          <button
-            onClick={openSettings}
-            className="
+            {/* Settings Link */}
+            <div className="pt-2">
+              <button
+                onClick={openSettings}
+                className="
               text-sm text-theme-text-secondary hover:text-theme-accent
               transition-colors duration-200 flex items-center space-x-2
               hover:underline
             "
-          >
-            <Settings className="w-4 h-4" />
-            <span>Advanced Settings</span>
-          </button>
-        </div>
+              >
+                <Settings className="w-4 h-4" />
+                <span>Advanced Settings</span>
+              </button>
+            </div>
 
-        {/* Keyboard Shortcuts Hint */}
-        <div className="text-xs text-theme-text-secondary text-center space-y-1 pt-2 border-t border-theme-border">
-          <p className="font-medium">Keyboard Shortcuts:</p>
-          <p>Ctrl+S: Save Prompt • Ctrl+1: Reply One • Ctrl+A: Reply All</p>
-        </div>
-      </div>
+            {/* Keyboard Shortcuts Hint */}
+            <div className="text-xs text-theme-text-secondary text-center space-y-1 pt-2 border-t border-theme-border">
+              <p className="font-medium">Keyboard Shortcuts:</p>
+              <p>Ctrl+S: Save Prompt • Ctrl+1: Reply One • Ctrl+A: Reply All</p>
+            </div>
+            {/* Logout button */}
+            <Button onClick={handleLogout} className="w-full bg-red-500 text-white">
+              Logout
+            </Button>
+          </div>
+        </>
+      )};
     </div>
   );
 };
