@@ -429,7 +429,7 @@ export const PopupApp: React.FC = () => {
               <p className="font-medium">Keyboard Shortcuts:</p>
               <p>Ctrl+S: Save Prompt • Ctrl+1: Reply One • Ctrl+A: Reply All</p>
             </div>
-            {/* Logout button */}
+            {/* Greeting Message & Logout Button */}
             <p className="text-sm">Hi, {user.email}</p>
           </div>
         </>
