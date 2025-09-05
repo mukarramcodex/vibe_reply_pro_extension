@@ -93,25 +93,6 @@ export const PopupApp: React.FC = () => {
     })
   };
 
-
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      await chrome.storage.local.clear();
-      localStorage.clear();
-      sessionStorage.clear();
-      setUser(null);
-    } catch (err) {
-      console.error("Logout error: ", err);
-    }
-  };
-  // const handleLogout = async () => {
-  //   await supabase.auth.signOut();
-  //   await chrome.storage.local.remove("supabaseSession");
-  //   await clearAuthTokens();
-  //   setUser(null);
-  // };
-
   // Load saved data from Chrome storage
   const loadSavedData = async () => {
     try {
@@ -450,9 +431,6 @@ export const PopupApp: React.FC = () => {
             </div>
             {/* Logout button */}
             <p className="text-sm">Hi, {user.email}</p>
-            <Button onClick={handleLogout} className="w-full bg-red-500 text-white">
-              Logout
-            </Button>
           </div>
         </>
       )}
