@@ -68,22 +68,6 @@ export const PopupApp: React.FC = () => {
         showStatus("error", "Authentication failed, please log in again.");
       }
     })();
-    // (async () => {
-    //   // const { data } = await supabase.auth.getUser();
-    //   // if (data?.user) setUser(data.user);
-    //   const { supabaseSession } = await chrome.storage.local.get("supabaseSession");
-
-    //   if (supabaseSession) {
-    //     const { data, error } = await supabase.auth.setSession(supabaseSession);
-    //     if (!error && data?.user) {
-    //       setUser(data.user);
-    //       return;
-    //     }
-    //   }
-
-    //   const { data } = await supabase.auth.getUser();
-    //   if (data?.user) setUser(data.user);
-    // })();
   }, []);
 
   const handleDashboardLogin = () => {
