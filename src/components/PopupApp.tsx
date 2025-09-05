@@ -11,7 +11,7 @@ import {
 import { Button } from './Button';
 import { StatusIndicator } from './StatusIndicator';
 import { ThemeToggle } from './ThemeToggle';
-import { chromeStorage, clearAuthTokens, tabMessaging } from '../utils/storage';
+import { chromeStorage, tabMessaging } from '../utils/storage';
 import { themeManager } from '../utils/theme';
 import { supabase } from '../utils/supabaseClient';
 
@@ -95,11 +95,22 @@ export const PopupApp: React.FC = () => {
 
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    await chrome.storage.local.remove("supabaseSession");
-    await clearAuthTokens();
-    setUser(null);
+    try {
+      await supabase.auth.signOut();
+      await chrome.storage.local.clear();
+      localStorage.clear();
+      sessionStorage.clear();
+      setUser(null);
+    } catch (err) {
+      console.error("Logout error: ", err);
+    }
   };
+  // const handleLogout = async () => {
+  //   await supabase.auth.signOut();
+  //   await chrome.storage.local.remove("supabaseSession");
+  //   await clearAuthTokens();
+  //   setUser(null);
+  // };
 
   // Load saved data from Chrome storage
   const loadSavedData = async () => {

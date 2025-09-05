@@ -51,6 +51,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     
     return true;
   }
+
+  // if (message.type === "NEW_Session" && message.session) {
+  //   chrome.storage.local.set({ supabaseSession: message.session });
+  // }
 });
 
 chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
