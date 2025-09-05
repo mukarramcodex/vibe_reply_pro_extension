@@ -52,3 +52,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 });
+
+chrome.runtime.onMessageExternal.addListener((message, sender, sendResponse) => {
+  console.log("External message received: ", message);
+
+  if (message.type === "AUTH_SESSION") {
+    chrome.storage.local.set({ supabaseSession: message.session }, () => {
+      console.log("Supabase session saved: ", message.session);
+      sendResponse({ success: true });
+    });
+    return true;
+  }
+
+  sendResponse({ success: false, error: "Unknown message type" });
+});

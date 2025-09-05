@@ -40,43 +40,63 @@ export const PopupApp: React.FC = () => {
     loadSavedData();
 
     (async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) setUser(data.user);
-    })();
-  }, []);
+      try {
+        // Try restoring Supabase session from Chrome local storage
+        const { supabaseSession } = await chrome.storage.local.get("supabaseSession");
 
-  // // Google Login
-  // const handleGoogleLogin = async () => {
-  //   const { data, error } = await supabase.auth.signInWithOAuth({
-  //     provider: "google",
-  //     options: {
-  //       redirectTo: chrome.identity.getRedirectURL(),
-  //     },
-  //   });
-  //   if (error) console.error("Google login error", error);
-  // };
+        if (supabaseSession) {
+          const { data, error } = await supabase.auth.setSession(supabaseSession);
+
+          if (!error && data?.user) {
+            setUser(data.user);
+            showStatus("success", `Welcome back, ${data.user.email}`);
+            return;
+          } else {
+            console.warn("Stored session invalid, falling back to getUser()");
+          }
+        }
+
+        // Fallback check
+        const { data } = await supabase.auth.getUser();
+        if (data?.user) {
+          setUser(data.user);
+          showStatus("success", `Signed in as ${data.user.email}`);
+        }
+
+      } catch (err) {
+        console.error("Auth init failed:", err);
+        showStatus("error", "Authentication failed, please log in again.");
+      }
+    })();
+    // (async () => {
+    //   // const { data } = await supabase.auth.getUser();
+    //   // if (data?.user) setUser(data.user);
+    //   const { supabaseSession } = await chrome.storage.local.get("supabaseSession");
+
+    //   if (supabaseSession) {
+    //     const { data, error } = await supabase.auth.setSession(supabaseSession);
+    //     if (!error && data?.user) {
+    //       setUser(data.user);
+    //       return;
+    //     }
+    //   }
+
+    //   const { data } = await supabase.auth.getUser();
+    //   if (data?.user) setUser(data.user);
+    // })();
+  }, []);
 
   const handleDashboardLogin = () => {
     const extensionId = chrome.runtime.id;
     chrome.tabs.create({
       url: `https://vibereply.pro/connect-extension?extensionId=${extensionId}`,
-    });
+    })
   };
 
-  // const handleLogin = async () => {
-  //   const { error } = await supabase.auth.signInWithOtp({
-  //     email: prompt("Enter your email") || "",
-  //   });
-  //   if (error) {
-  //     showStatus("error", "Login failed");
-  //     console.error(error);
-  //   } else {
-  //     showStatus("success", "Check your email for login link");
-  //   }
-  // };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    await chrome.storage.local.remove("supabaseSession");
     await clearAuthTokens();
     setUser(null);
   };
@@ -424,7 +444,7 @@ export const PopupApp: React.FC = () => {
             </Button>
           </div>
         </>
-      )};
+      )}
     </div>
   );
 };
